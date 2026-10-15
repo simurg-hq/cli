@@ -51,5 +51,9 @@ secrets: ## Scan the git history for secrets with gitleaks
 	$(DOCKER_RUN) $(GITLEAKS_IMAGE) git --redact --no-banner -v .
 
 
+# go build stamps the git commit into the binary. In CI the checkout belongs to
+# another user than the container, so git needs /work marked as safe.
 build: ## Build simurg for Linux and macOS on amd64 and arm64 into dist/
-	$(GO_RUN) -e VERSION=$(VERSION) $(GO_IMAGE) sh scripts/ci/build.sh
+	$(GO_RUN) -e VERSION=$(VERSION) \
+		-e GIT_CONFIG_COUNT=1 -e GIT_CONFIG_KEY_0=safe.directory -e GIT_CONFIG_VALUE_0=/work \
+		$(GO_IMAGE) sh scripts/ci/build.sh
