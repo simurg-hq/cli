@@ -6,7 +6,17 @@ CI_TOOLS_IMAGE := $(notdir $(CURDIR))-ci-tools:local
 SHELLCHECK_IMAGE := koalaman/shellcheck:v0.11.0
 DOCKER_RUN := docker run --rm -v "$(CURDIR):/work" -w /work -e PR_SIZE_APPROVED
 
-.PHONY: help ci-tools-image pr-size test-ci-scripts lint-ci-scripts
+GO_IMAGE := golang:1.26.9-trixie@sha256:f06b7122f888680048afb247c4e5f49c0069eb6c4c1ccae0f3f4834527a8d22c
+GOLANGCI_LINT_IMAGE := golangci/golangci-lint:v2.14.0@sha256:ad862ba6b3798cbe0fd9fd7408d498fd74fbd2623a92406b2fd3898faf0bf98f
+GITLEAKS_IMAGE := zricethezav/gitleaks:v8.30.1@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f
+GOVULNCHECK_VERSION := v1.9.0
+# Version written into the binary: the nearest tag, or the commit when there is none.
+VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
+# Named volumes keep the Go module and build caches between runs.
+GO_RUN := $(DOCKER_RUN) -v $(notdir $(CURDIR))-go-mod:/go/pkg/mod -v $(notdir $(CURDIR))-go-build:/root/.cache/go-build
+
+.PHONY: help ci-tools-image pr-size test-ci-scripts lint-ci-scripts \
+	check fmt-check lint test vulncheck secrets build
 
 help: ## List available targets
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-18s %s\n", $$1, $$2}'
@@ -22,3 +32,24 @@ test-ci-scripts: ci-tools-image ## Run the CI script tests
 
 lint-ci-scripts: ## Lint the CI scripts with shellcheck
 	$(DOCKER_RUN) $(SHELLCHECK_IMAGE) scripts/ci/*.sh
+
+check: fmt-check lint test vulncheck secrets build ## Run all Go gates and the cross-platform build
+
+fmt-check: ## Fail if a Go file is not gofmt-formatted
+	$(GO_RUN) $(GO_IMAGE) sh -c 'files=$$(gofmt -l .); [ -z "$$files" ] || { echo "not gofmt-formatted:"; echo "$$files"; exit 1; }'
+
+lint: ## Run golangci-lint (.golangci.yml)
+	$(GO_RUN) $(GOLANGCI_LINT_IMAGE) golangci-lint run
+
+test: ## Run the Go tests with the race detector
+	$(GO_RUN) $(GO_IMAGE) go test -race ./...
+
+vulncheck: ## Check the Go code and its dependencies for known vulnerabilities
+	$(GO_RUN) $(GO_IMAGE) go run golang.org/x/vuln/cmd/govulncheck@$(GOVULNCHECK_VERSION) ./...
+
+secrets: ## Scan the git history for secrets with gitleaks
+	$(DOCKER_RUN) $(GITLEAKS_IMAGE) git --redact --no-banner -v .
+
+
+build: ## Build simurg for Linux and macOS on amd64 and arm64 into dist/
+	$(GO_RUN) -e VERSION=$(VERSION) $(GO_IMAGE) sh scripts/ci/build.sh
