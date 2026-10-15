@@ -58,6 +58,13 @@ make help               # list all targets
 make lint-ci-scripts    # shellcheck for scripts/ci
 make test-ci-scripts    # bats tests for scripts/ci
 make pr-size            # measure this branch against origin/main
+make check              # all gates below
+make fmt-check          # gofmt
+make lint               # golangci-lint (.golangci.yml)
+make test               # go test -race
+make vulncheck          # govulncheck
+make secrets            # gitleaks over the git history
+make build              # build Linux/macOS × amd64/arm64 into dist/; check the injected version
 ```
 
 A task that adds a gate also adds its `make` target and lists it here.
