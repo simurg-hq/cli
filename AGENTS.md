@@ -58,6 +58,7 @@ make help               # list all targets
 make lint-ci-scripts    # shellcheck for scripts/ci
 make test-ci-scripts    # bats tests for scripts/ci
 make pr-size            # measure this branch against origin/main
+make test-tampering     # assertions removed or changed and skips added in tests since origin/main
 make check              # all gates below
 make fmt-check          # gofmt
 make lint               # golangci-lint (.golangci.yml)
