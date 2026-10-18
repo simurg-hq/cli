@@ -15,7 +15,7 @@ VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
 # Named volumes keep the Go module and build caches between runs.
 GO_RUN := $(DOCKER_RUN) -v $(notdir $(CURDIR))-go-mod:/go/pkg/mod -v $(notdir $(CURDIR))-go-build:/root/.cache/go-build
 
-.PHONY: help ci-tools-image pr-size test-tampering test-ci-scripts lint-ci-scripts \
+.PHONY: help ci-tools-image pr-size test-tampering test-ci-scripts lint-ci-scripts secrets-staged \
 	check fmt-check lint test vulncheck secrets build
 
 help: ## List available targets
@@ -60,3 +60,9 @@ build: ## Build simurg for Linux and macOS on amd64 and arm64 into dist/
 	$(GO_RUN) -e VERSION=$(VERSION) \
 		-e GIT_CONFIG_COUNT=1 -e GIT_CONFIG_KEY_0=safe.directory -e GIT_CONFIG_VALUE_0=/work \
 		$(GO_IMAGE) sh scripts/ci/build.sh
+
+# `git commit -a` and `git commit <path>` stage into a temporary index that Git
+# names by its absolute host path; the container needs it relative to the repo.
+secrets-staged: ## Scan the staged changes for secrets with gitleaks (pre-commit hook)
+	$(DOCKER_RUN) -e GIT_INDEX_FILE=$(patsubst $(CURDIR)/%,%,$(or $(GIT_INDEX_FILE),.git/index)) \
+		$(GITLEAKS_IMAGE) git --staged --redact --no-banner -v .
