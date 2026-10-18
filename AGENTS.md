@@ -36,6 +36,8 @@ add them.
 ## Rules
 
 - One task, one branch, one pull request against `main`. Keep the diff outside tests and generated files under 400 lines; if it will not fit, stop and ask for the task to be split.
+- Never merge a pull request, push to `main`, or add or remove labels. A human merges, and the approval labels (`size-approved`, `tests-change-approved`) are a human's decision. Branch protection blocks merging a red pull request, but nothing on GitHub stops an agent from merging a green one or changing labels, so it is on you.
+- Touch only the files your task needs. If it needs files outside its scope, stop and ask for the task to be re-planned.
 - Write the failing test first. Every acceptance criterion maps to at least one test.
 - Implement only what the task asks for.
 - Network calls have short timeouts and their failures are never returned as the wrapped command's failure.
