@@ -49,5 +49,5 @@ func usage(stderr io.Writer) {
 // printErr writes to stderr. If stderr itself fails there is nowhere left to
 // report it, so the error is dropped.
 func printErr(stderr io.Writer, format string, args ...any) {
-	_, _ = fmt.Fprintf(stderr, format, args...)
+	fmt.Fprintf(stderr, format, args...)
 }
