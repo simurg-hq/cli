@@ -28,7 +28,7 @@ func Run(args []string, version string, stdout, stderr io.Writer) int {
 	case "version":
 		if len(args) > 1 {
 			printErr(stderr, "version takes no arguments\n")
-			return exitUsage
+			return exitError
 		}
 		if _, err := fmt.Fprintf(stdout, "%s %s\n", command, version); err != nil {
 			printErr(stderr, "write version: %v\n", err)
