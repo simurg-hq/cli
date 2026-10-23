@@ -7,11 +7,8 @@ The `simurg` command line tool. It wraps any command, reports its start, finish,
 Prerequisites:
 
 - [Docker](https://docs.docker.com/get-docker/) (OrbStack or Docker Desktop)
-- [Lefthook](https://lefthook.dev/) for Git hooks
 
-All language toolchains and quality gates run in pinned Docker images, so nothing else needs to be installed on the host.
-
-Run `lefthook install` once per clone to enable the Git hooks: format, static analysis and a secret scan on every commit. Tests run in CI on every pull request.
+All language toolchains run in pinned Docker images, so nothing else needs to be installed on the host.
 
 Build the binaries for Linux and macOS on amd64 and arm64:
 
@@ -21,7 +18,7 @@ make build                          # writes dist/simurg-<os>-<arch>
 ```
 
 The version comes from `git describe`; set it with `make build VERSION=v0.1.0`.
-`make check` runs all quality gates; `make help` lists every target.
+`make help` lists every target.
 
 ## License
 
