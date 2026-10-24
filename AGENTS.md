@@ -37,3 +37,9 @@ not reference private repositories or internal documents.
 - Never hardcode the product name in user-facing text; use `product.Name` from `internal/product`.
 - Never create or commit secrets, tokens or real credentials.
 - Code, comments, commit messages and documents are in English.
+
+## Implementation
+
+- Meet every need the task states; check them one by one before calling the work done.
+- Follow the best practices of the language and its tools. Keep the code DRY and the design SOLID, without layers that only restate configuration.
+- Weigh performance and security in every change.
